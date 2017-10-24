@@ -70,6 +70,7 @@ def main(_):
     with tf.Graph().as_default():
         sess = tf.Session()
         with sess.as_default():
+            writer = tf.summary.FileWriter('logs')
             initializer = tf.contrib.layers.xavier_initializer(uniform = False)
             with tf.variable_scope("model", reuse=None, initializer = initializer):
                 trainModel = TransEModel(config = config)
@@ -102,12 +103,13 @@ def main(_):
                     ps = pos_set[i:i+batch_size]
                     ns = neg_set[i:i+batch_size]
 
-                    print(np.shape(ps[:,0]))
                     res += train_step(ps[:,0], ps[:,2], ps[:,1], ns[:,0], ns[:,2], ns[:,1])
                     current_step = tf.train.global_step(sess, global_step)
                 print(times)
                 print(res)
             saver.save(sess, 'model.vec')
+
+            writer.add_graph(sess.graph)
 
 if __name__ == "__main__":
     tf.app.run()
