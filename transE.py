@@ -9,9 +9,6 @@ import datetime
 import ctypes
 from dataset import Data
 
-ll = ctypes.cdll.LoadLibrary   
-lib = ll("./init.so")
-
 class Config(object):
 
     def __init__(self):
