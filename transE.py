@@ -17,7 +17,7 @@ class Config(object):
         self.nbatches = 100
         self.entity = 0
         self.relation = 0
-        self.trainTimes = 3000
+        self.trainTimes = 1000
         self.margin = 1.0
 
 class TransEModel(object):
@@ -71,7 +71,8 @@ def main(_):
     with tf.Graph().as_default():
         sess = tf.Session()
         with sess.as_default():
-            writer = tf.summary.FileWriter('logs')
+            train_writer = tf.summary.FileWriter('logs/log_1')
+            val_writer = tf.summary.FileWriter('logs/log_2')
             initializer = tf.contrib.layers.xavier_initializer(uniform = False)
             with tf.variable_scope("model", reuse=None, initializer = initializer):
                 trainModel = TransEModel(config = config)
@@ -97,9 +98,22 @@ def main(_):
                     [train_op, global_step, trainModel.loss, trainModel.loss_scalar], feed_dict)
                 return loss, loss_scalar
 
+            def val_step(pos_h_batch, pos_t_batch, pos_r_batch, neg_h_batch, neg_t_batch, neg_r_batch):
+                feed_dict = {
+                    trainModel.pos_h: pos_h_batch,
+                    trainModel.pos_t: pos_t_batch,
+                    trainModel.pos_r: pos_r_batch,
+                    trainModel.neg_h: neg_h_batch,
+                    trainModel.neg_t: neg_t_batch,
+                    trainModel.neg_r: neg_r_batch
+                }
+                loss, loss_scalar = sess.run(
+                    [trainModel.loss, trainModel.loss_scalar], feed_dict)
+                return loss, loss_scalar
+
             for times in range(config.trainTimes):
                 res = 0.0
-                pos_set, neg_set = model.getBatch()
+                pos_set, neg_set = model.getTrainBatch()
                 for i in range(0, len(pos_set), batch_size):
                     ps = pos_set[i:i+batch_size]
                     ns = neg_set[i:i+batch_size]
@@ -107,13 +121,25 @@ def main(_):
                     loss, loss_scalar = train_step(ps[:,0], ps[:,2], ps[:,1], ns[:,0], ns[:,2], ns[:,1])
                     res += loss
                     current_step = tf.train.global_step(sess, global_step)
-                    writer.add_summary(loss_scalar, current_step)
+                    train_writer.add_summary(loss_scalar, current_step)
+                    train_writer.flush()
+
+
+                if (times+1)%100 == 0:
+                    pos_set, neg_set = model.getValBatch()
+                    ps = pos_set[i:i+batch_size]
+                    ns = neg_set[i:i+batch_size]
+
+                    loss, loss_scalar = val_step(ps[:,0], ps[:,2], ps[:,1], ns[:,0], ns[:,2], ns[:,1])
+                    current_step = tf.train.global_step(sess, global_step)
+                    val_writer.add_summary(loss_scalar, current_step)
+                    val_writer.flush()
 
                 print(times)
                 print(res)
             saver.save(sess, 'model.vec')
 
-            writer.add_graph(sess.graph)
+            # writer.add_graph(sess.graph)
 
 if __name__ == "__main__":
     tf.app.run()

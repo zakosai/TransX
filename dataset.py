@@ -41,11 +41,21 @@ class Data(object):
                 e = list(map(int, e))
                 train_dataset.append(e)
 
+        #read val
+        val_path = os.path.join(os.getcwd(), dir, "valid_convert.csv")
+        val_dataset = []
+        with open(val_path, "r") as f:
+            val_file = csv.reader(f, delimiter= ",",)
+            for e in val_file:
+                e = list(map(int, e))
+                val_dataset.append(e)
+
 
         self.head = head
         self.relation = relation
         self.tail = tail
         self.train_dataset = np.array(train_dataset)
+        self.val_dataset = np.array(val_dataset)
 
 
     def getRelationTotal(self):
@@ -60,14 +70,13 @@ class Data(object):
     def getTripleTotal(self):
         return len(self.train_dataset)
 
-    def getBatch(self, shuffle=True):
-        train_dataset = self.train_dataset[:]
+    def getBatch(self, dataset, shuffle=True):
         if shuffle:
-            np.random.shuffle(train_dataset)
+            np.random.shuffle(dataset)
 
-        p_head = train_dataset[:,0]
-        p_relation = train_dataset[:,1]
-        p_tail = train_dataset[:, 2]
+        p_head = dataset[:,0]
+        p_relation = dataset[:,1]
+        p_tail = dataset[:, 2]
 
         n_head = random.sample(p_head, len(p_head))
         n_tail = random.sample(p_tail, len(p_tail))
@@ -81,7 +90,15 @@ class Data(object):
         np.random.shuffle(n_train)
 
 
-        return train_dataset, n_train
+        return dataset, n_train
+
+    def getTrainBatch(self):
+        return self.getBatch(self.train_dataset)
+
+    def getValBatch(self):
+        return self.getBatch(self.val_dataset)
+
+
 
 
 
