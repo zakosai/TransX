@@ -125,11 +125,11 @@ def main(_):
                     train_writer.flush()
 
 
-                if (times+1)%100 == 0:
+                if (times+1)%10 == 0:
                     pos_set, neg_set = model.getValBatch()
                     ps = pos_set[i:i+batch_size]
                     ns = neg_set[i:i+batch_size]
-
+                    print(ps)
                     loss, loss_scalar = val_step(ps[:,0], ps[:,2], ps[:,1], ns[:,0], ns[:,2], ns[:,1])
                     current_step = tf.train.global_step(sess, global_step)
                     val_writer.add_summary(loss_scalar, current_step)
