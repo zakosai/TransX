@@ -17,7 +17,7 @@ class Config(object):
         self.nbatches = 100
         self.entity = 0
         self.relation = 0
-        self.trainTimes = 1000
+        self.trainTimes = 400
         self.margin = 1.0
 
 class TransEModel(object):
