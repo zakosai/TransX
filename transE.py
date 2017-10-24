@@ -106,6 +106,7 @@ def main(_):
                     res += train_step(ps[:,0], ps[:,2], ps[:,1], ns[:,0], ns[:,2], ns[:,1])
                     current_step = tf.train.global_step(sess, global_step)
                 print(times)
+                writer.add_summary(res, times)
                 print(res)
             saver.save(sess, 'model.vec')
 
