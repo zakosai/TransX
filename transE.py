@@ -57,6 +57,7 @@ class TransEModel(object):
 
         with tf.name_scope("output"):
             self.loss = tf.reduce_sum(tf.maximum(pos - neg + margin, 0))
+            self.loss_scalar = tf.summary.scalar("summary", self.loss)
 
 def main(_):
     model = Data("data/WN18")
@@ -92,9 +93,9 @@ def main(_):
                     trainModel.neg_t: neg_t_batch,
                     trainModel.neg_r: neg_r_batch
                 }
-                _, step, loss = sess.run(
-                    [train_op, global_step, trainModel.loss], feed_dict)
-                return loss
+                _, step, loss, loss_scalar = sess.run(
+                    [train_op, global_step, trainModel.loss, trainModel.loss_scalar], feed_dict)
+                return loss, loss_scalar
 
             for times in range(config.trainTimes):
                 res = 0.0
@@ -103,10 +104,12 @@ def main(_):
                     ps = pos_set[i:i+batch_size]
                     ns = neg_set[i:i+batch_size]
 
-                    res += train_step(ps[:,0], ps[:,2], ps[:,1], ns[:,0], ns[:,2], ns[:,1])
+                    loss, loss_scalar = train_step(ps[:,0], ps[:,2], ps[:,1], ns[:,0], ns[:,2], ns[:,1])
+                    res += loss
                     current_step = tf.train.global_step(sess, global_step)
+                    writer.add_summary(loss_scalar, current_step)
+
                 print(times)
-                writer.add_summary(res, times)
                 print(res)
             saver.save(sess, 'model.vec')
 
