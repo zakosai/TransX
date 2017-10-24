@@ -82,8 +82,7 @@ def main(_):
             sess.run(tf.initialize_all_variables())
 
             def train_step(pos_h_batch, pos_t_batch, pos_r_batch, neg_h_batch, neg_t_batch, neg_r_batch):
-                print(np.shape(pos_h_batch), np.shape(pos_t_batch), np.shape(pos_r_batch))
-                print(np.shape(neg_h_batch), np.shape(neg_t_batch), np.shape(neg_r_batch))
+
                 feed_dict = {
                     trainModel.pos_h: pos_h_batch,
                     trainModel.pos_t: pos_t_batch,
@@ -95,8 +94,6 @@ def main(_):
                 _, step, loss = sess.run(
                     [train_op, global_step, trainModel.loss], feed_dict)
                 return loss
-
-
 
             for times in range(config.trainTimes):
                 res = 0.0
